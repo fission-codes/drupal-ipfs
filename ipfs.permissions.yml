@@ -1,0 +1,4 @@
+administer ipfs:
+  description: 'Administer IPFS.'
+  title: 'Administer IPFS'
+  restrict access: TRUE

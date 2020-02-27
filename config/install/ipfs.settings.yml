@@ -1,1 +1,5 @@
+ipfs_gateway_type: 'fission'
 ipfs_host: 'http://127.0.0.1:5001'
+fission_gateway: 'https://ipfs.runfission.com'
+fission_username: ''
+fission_password: ''
