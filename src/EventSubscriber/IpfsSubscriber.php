@@ -4,6 +4,7 @@ namespace Drupal\ipfs\EventSubscriber;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Site\Settings;
+use Drupal\ipfs\StreamWrapper\FissionIpfsStream;
 use IPFS\StreamWrapper\IpfsStreamWrapper;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
@@ -48,9 +49,18 @@ class IpfsSubscriber implements EventSubscriberInterface {
    *   The Event to process.
    */
   public function configureIpfsStreamWrapper(GetResponseEvent $event) {
-    // Set the IPFS host and the HTTP client settings for the 'ipfs' scheme.
-    IpfsStreamWrapper::setOption('ipfs_host', $this->configFactory->get('ipfs.settings')->get('ipfs_host'));
-    IpfsStreamWrapper::setOption('http_client_config', $this->settings->get('http_client_config', []));
+
+    if ('ipfs' == $this->configFactory->get('ipfs.settings')->get('ipfs_gateway_type')) {
+      // Set the IPFS host and the HTTP client settings for the 'ipfs' scheme.
+      IpfsStreamWrapper::setOption('ipfs_host', $this->configFactory->get('ipfs.settings')->get('ipfs_host'));
+      IpfsStreamWrapper::setOption('http_client_config', $this->settings->get('http_client_config', []));
+    } else if ('fission' == $this->configFactory->get('ipfs.settings')->get('ipfs_gateway_type')) {
+      // Set the Fission IPFS host and the HTTP client settings for the 'ipfs' scheme.
+      FissionIpfsStream::setOption('fission_gateway', $this->configFactory->get('ipfs.settings')->get('fission_gateway'));
+      FissionIpfsStream::setOption('fission_username', $this->configFactory->get('ipfs.settings')->get('fission_username'));
+      FissionIpfsStream::setOption('fission_password', $this->configFactory->get('ipfs.settings')->get('fission_password'));
+      FissionIpfsStream::setOption('http_client_config', $this->settings->get('http_client_config', []));
+    }
   }
 
   /**

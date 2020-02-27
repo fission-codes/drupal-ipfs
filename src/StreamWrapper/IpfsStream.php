@@ -5,6 +5,7 @@ namespace Drupal\ipfs\StreamWrapper;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use IPFS\StreamWrapper\IpfsStreamWrapper;
+use Drupal\ipfs\StreamWrapper\FissionIpfsStream;
 
 /**
  * Defines a Drupal stream wrapper for IPFS.
@@ -21,7 +22,13 @@ class IpfsStream implements StreamWrapperInterface {
   protected $streamWrapper;
 
   public function __construct() {
-    $this->streamWrapper = new IpfsStreamWrapper;
+    if ('ipfs' == \Drupal::config('ipfs.settings')->get('ipfs_gateway_type')) {
+      $this->streamWrapper = new IpfsStreamWrapper();
+    } else if ('fission' == \Drupal::config('ipfs.settings')->get('ipfs_gateway_type')) {
+      $this->streamWrapper = new FissionIpfsStream();
+    }
+
+
   }
 
   /**
@@ -84,6 +91,10 @@ class IpfsStream implements StreamWrapperInterface {
 
   public static function register($ipfs_host = 'http://127.0.0.1:5001', array $http_client_config = [])
   {
+
+    print "DOES ANYONE CALLS ME?"; exit;
+
+
       if (in_array(static::PROTOCOL, stream_get_wrappers())) {
           stream_wrapper_unregister(static::PROTOCOL);
       }
