@@ -540,11 +540,31 @@ class FissionIpfsStream implements StreamWrapperInterface {
    *
    * @see http://php.net/manual/streamwrapper.url-stat.php
    */
-  public function url_stat($path, $flags)
-  {
-    // Returning false because we need to tell Drupal the file doesn't existing.
-    return FALSE;
-  }
+  public function url_stat($path, $flags) {
+
+    $ipfs_path = $this->getIpfsPath($path);
+
+    if (0 === strpos($ipfs_path, '/ipfs/')) {
+      $stat = $this->getStatTemplate();
+
+      try {
+        // I don't think I can stat the file because Fission doesn't support stat,
+        // so for now I'm just going to say "OK!"
+        // Request would happen here.
+        // For now, just make something up
+        $stat['size'] = 10000;
+        $stat['mode'] = 0100000 | 0666;
+      } catch (\Exception $exception) {
+        return $this->triggerError($exception->getMessage(), $flags);
+      }
+
+      return $stat;
+
+    } else {
+      // Returning false because we need to tell Drupal the file doesn't existing.
+      return FALSE;
+    }
+ }
 
     /**
      * Perform an HTTP request for the current URI.
@@ -557,13 +577,12 @@ class FissionIpfsStream implements StreamWrapperInterface {
      *
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    private function request($method = 'GET')
-    {
-        $response = $this->getHttpClient()->request($method, $this->uri, $this->httpClientConfig);
-        if ($method !== 'HEAD') {
-            $this->stream = $response->getBody();
-        }
-        return $response;
+    private function request($method = 'GET') {
+      $response = $this->getHttpClient()->request($method, $this->uri, $this->httpClientConfig);
+      if ($method !== 'HEAD') {
+        $this->stream = $response->getBody();
+      }
+      return $response;
     }
 
     /**
@@ -584,22 +603,21 @@ class FissionIpfsStream implements StreamWrapperInterface {
      *   IPFS hash, or a local IPFS file path in the form of
      *   [/<folder_name>][/file_name.ext] otherwise.
      */
-    private function getIpfsPath($uri = null)
-    {
-        if (!isset($uri)) {
-            $uri = $this->uri;
-        }
+    private function getIpfsPath($uri = null) {
+      if (!isset($uri)) {
+        $uri = $this->uri;
+      }
 
-        // Remove the scheme from the URI and remove erroneous leading or
-        // trailing, forward-slashes and backslashes.
-        $target = '/' . trim(preg_replace('/^[\w\-]+:\/\/|^data:/', '', $uri), '\/');
+      // Remove the scheme from the URI and remove erroneous leading or
+      // trailing, forward-slashes and backslashes.
+      $target = '/' . trim(preg_replace('/^[\w\-]+:\/\/|^data:/', '', $uri), '\/');
 
-        // The target contains a hash, so it is not a local IPFS path.
-        if (substr($target, 0, 3) === '/Qm') {
-            $target = '/ipfs' . $target;
-        }
+      // The target contains a hash, so it is not a local IPFS path.
+      if (substr($target, 0, 3) === '/Qm') {
+        $target = '/ipfs' . $target;
+      }
 
-        return $target;
+      return $target;
     }
 
     /**
@@ -612,21 +630,19 @@ class FissionIpfsStream implements StreamWrapperInterface {
      *   Returns a string representing an IPFS location in the form of
      *   <hash>[/<folder_name>][/file_name.ext].
      */
-    private function getIpfsTarget($uri = null)
-    {
-        if (!isset($uri)) {
-            $uri = $this->uri;
-        }
+    private function getIpfsTarget($uri = null) {
+      if (!isset($uri)) {
+      $uri = $this->uri;
+      }
 
-        // list(, $target) = explode('://', $uri, 2);
+      // list(, $target) = explode('://', $uri, 2);
 
-        // // Remove erroneous leading or trailing, forward-slashes and backslashes.
-        // return trim($target, '\/');
+      // // Remove erroneous leading or trailing, forward-slashes and backslashes.
+      // return trim($target, '\/');
 
-        list(, $path) = explode('://', $uri, 2);
-        list(, $target) = explode('/', $path, 2);
-        return $target;
-
+      list(, $path) = explode('://', $uri, 2);
+      list(, $target) = explode('/', $path, 2);
+      return $target;
     }
 
     /**
@@ -641,13 +657,12 @@ class FissionIpfsStream implements StreamWrapperInterface {
      * @return bool
      *   TRUE on success, FALSE otherwise.
      */
-    private function handleBooleanCall(callable $function, $flags = null)
-    {
-        try {
-            return $function();
-        } catch (\Exception $e) {
-            return $this->triggerError($e->getMessage(), $flags);
-        }
+    private function handleBooleanCall(callable $function, $flags = null) {
+      try {
+        return $function();
+      } catch (\Exception $e) {
+        return $this->triggerError($e->getMessage(), $flags);
+      }
     }
 
     /**
@@ -665,22 +680,21 @@ class FissionIpfsStream implements StreamWrapperInterface {
      * @throws \RuntimeException
      *   If throw_errors is TRUE.
      */
-    private function triggerError($errors, $flags = null)
-    {
-        // This is triggered with things like file_exists() or fopen().
-        if ($flags & STREAM_URL_STAT_QUIET) {
-            return $flags & STREAM_URL_STAT_LINK
-                // This is triggered for things like is_link().
-                ? $this->getStatTemplate()
-                : false;
-        }
+    private function triggerError($errors, $flags = null) {
+      // This is triggered with things like file_exists() or fopen().
+      if ($flags & STREAM_URL_STAT_QUIET) {
+        return $flags & STREAM_URL_STAT_LINK
+          // This is triggered for things like is_link().
+          ? $this->getStatTemplate()
+          : false;
+      }
 
-        // This is triggered when doing things like lstat() or stat().
-        if ($flags & STREAM_REPORT_ERRORS) {
-            trigger_error(implode("\n", (array)$errors), E_USER_WARNING);
-        }
+      // This is triggered when doing things like lstat() or stat().
+      if ($flags & STREAM_REPORT_ERRORS) {
+        trigger_error(implode("\n", (array)$errors), E_USER_WARNING);
+      }
 
-        return false;
+      return false;
     }
 
     /**
@@ -691,24 +705,23 @@ class FissionIpfsStream implements StreamWrapperInterface {
      *
      * @see http://php.net/manual/en/function.stat.php
      */
-    protected function getStatTemplate()
-    {
-        // @see https://github.com/guzzle/psr7/blob/master/src/StreamWrapper.php
-        return [
-            'dev' => 0,
-            'ino' => 0,
-            'mode' => 0,
-            'nlink' => 0,
-            'uid' => 0,
-            'gid' => 0,
-            'rdev' => 0,
-            'size' => 0,
-            'atime' => 0,
-            'mtime' => 0,
-            'ctime' => 0,
-            'blksize' => -1,
-            'blocks' => -1,
-        ];
+    protected function getStatTemplate() {
+      // @see https://github.com/guzzle/psr7/blob/master/src/StreamWrapper.php
+      return [
+          'dev' => 0,
+          'ino' => 0,
+          'mode' => 0,
+          'nlink' => 0,
+          'uid' => 0,
+          'gid' => 0,
+          'rdev' => 0,
+          'size' => 0,
+          'atime' => 0,
+          'mtime' => 0,
+          'ctime' => 0,
+          'blksize' => -1,
+          'blocks' => -1,
+      ];
     }
 
     /**
@@ -755,19 +768,18 @@ class FissionIpfsStream implements StreamWrapperInterface {
      *
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    private function openReadStream($uri)
-    {
-        $ipfs_target = $this->getIpfsTarget($uri);
-        $this->setUri($this->getOption('fission_gateway') . '/ipfs/' . $ipfs_target);
-        $this->request();
+    private function openReadStream($uri) {
 
-        $this->size = $this->stream->getSize();
+      $hash = str_replace('ipfs://', '', $uri);
+      $this->setUri($this->getOption('fission_gateway') . '/ipfs/' . $hash);
+      $this->request();
+      $this->size = $this->stream->getSize();
 
-        // Wrap the body in a caching entity body if seeking is allowed.
-        if ($this->getOption('seekable') && !$this->stream->isSeekable()) {
-            $this->stream = new CachingStream($this->stream);
-        }
-        return true;
+      // Wrap the body in a caching entity body if seeking is allowed.
+      if ($this->getOption('seekable') && !$this->stream->isSeekable()) {
+          $this->stream = new CachingStream($this->stream);
+      }
+      return true;
     }
 
     /**
