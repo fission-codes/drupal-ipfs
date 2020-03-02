@@ -9,6 +9,19 @@ use Drupal\image\Entity\ImageStyle;
  */
 class IpfsImageStyle extends ImageStyle {
 
+
+  public function supportsUri($uri){
+    $source_scheme = $scheme = $this->fileUriScheme($uri);
+    if ($source_scheme === 'ipfs') {
+      // /* @var \Drupal\file\FileInterface[] $files */
+      // $files = \Drupal::entityTypeManager()
+      //   ->getStorage('file')
+      //   ->loadByProperties(['uri' => $uri]);
+      // I ACTUALLY SHOULD GO LOOK UP WHAT KIND OF FILE IT IS HERE
+      return TRUE;
+    }
+  }
+
   /**
    * {@inheritdoc}
    */

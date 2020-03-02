@@ -91,10 +91,6 @@ class IpfsStream implements StreamWrapperInterface {
 
   public static function register($ipfs_host = 'http://127.0.0.1:5001', array $http_client_config = [])
   {
-
-    print "DOES ANYONE CALLS ME?"; exit;
-
-
       if (in_array(static::PROTOCOL, stream_get_wrappers())) {
           stream_wrapper_unregister(static::PROTOCOL);
       }

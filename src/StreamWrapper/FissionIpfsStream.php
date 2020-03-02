@@ -300,7 +300,7 @@ class FissionIpfsStream implements StreamWrapperInterface {
     $this->setUri($settings->get('fission_gateway') . '/ipfs');
     $this->setHttpClientConfigOption('headers', ['Content-Type' => 'application/octet-stream']);
     $this->setHttpClientConfigOption('auth', [$settings->get('fission_username'), $settings->get('fission_password')]);
-    $this->setHttpClientConfigOption('debug', fopen('/usr/local/var/log/httpd/guzzle','w+'));
+    // $this->setHttpClientConfigOption('debug', fopen('/usr/local/var/log/httpd/guzzle','w+'));
     $this->setHttpClientConfigOption('body', $this->stream->getContents());
     $response = $this->request('POST');
 
