@@ -6,13 +6,18 @@ use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use IPFS\StreamWrapper\IpfsStreamWrapper;
 use IPFS\StreamWrapper\ImmutableStreamWrapperTrait;
+use IPFS\HttpClientTrait;
 use IPFS\StreamContextOptionsTrait;
-
+use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Exception\ServerException;
+use GuzzleHttp\Psr7\CachingStream;
+use GuzzleHttp\Psr7\Stream;
 /**
  * Defines a Drupal stream wrapper for IPFS.
  */
 class FissionIpfsStream implements StreamWrapperInterface {
 
+  use HttpClientTrait;
   use ImmutableStreamWrapperTrait;
   use StringTranslationTrait;
   use StreamContextOptionsTrait;
@@ -124,7 +129,6 @@ class FissionIpfsStream implements StreamWrapperInterface {
     return $scheme . '://' . $dirname;
   }
 
-
   /* Pass all of these through */
 
   /**
@@ -172,7 +176,7 @@ class FissionIpfsStream implements StreamWrapperInterface {
   public function dir_opendir($path, $options) {
 
     // Can I do this? I don't think so.
-    return false;
+    return true;
 
   }
 
@@ -226,7 +230,8 @@ class FissionIpfsStream implements StreamWrapperInterface {
   public function mkdir($path, $mode, $options)
   {
     // Can I do this? I don't think so.
-    return false;
+    // But what the heck, I'm gonna say Yes for now.
+    return true;
   }
 
   /**
@@ -282,6 +287,7 @@ class FissionIpfsStream implements StreamWrapperInterface {
    * @see http://php.net/manual/streamwrapper.stream-flush.php
    */
   public function stream_flush() {
+
     if ($this->mode == 'r') {
       return false;
     }
@@ -289,22 +295,22 @@ class FissionIpfsStream implements StreamWrapperInterface {
       $this->stream->seek(0);
     }
 
-    $this->setUri($this->getOption('fission_gateway') . '/ipfs');
-    $this->setHttpClientConfigOption('multipart', [
-        [
-          'name' => 'file',
-          'contents' => $this->stream,
-        ],
-    ]);
+    $settings = \Drupal::config('ipfs.settings');
+
+    $this->setUri($settings->get('fission_gateway') . '/ipfs');
+    $this->setHttpClientConfigOption('headers', ['Content-Type' => 'application/octet-stream']);
+    $this->setHttpClientConfigOption('auth', [$settings->get('fission_username'), $settings->get('fission_password')]);
+    $this->setHttpClientConfigOption('debug', fopen('/usr/local/var/log/httpd/guzzle','w+'));
+    $this->setHttpClientConfigOption('body', $this->stream->getContents());
     $response = $this->request('POST');
 
     // If the upload was successful, move the file to our local opened path.
     if ($response->getStatusCode() == 200) {
+      $hash = (string)$response->getBody();
       $body = $this->decodeResponse($response);
 
-      $source = '/ipfs/' . $body['Hash'];
-      $destination = '/' . $this->getIpfsTarget($this->openedPath);
-
+      // Here I need to figure out how to store the hash as the filename.
+      error_log('RESPONSE: HASH:' . $hash . "\n", 3, "/usr/local/var/log/httpd/ipfs");
       return true;
     }
 
@@ -353,10 +359,16 @@ class FissionIpfsStream implements StreamWrapperInterface {
         return $this->triggerError($errors, $options);
     }
 
+    error_log(time() . " " . "Opened path $opened_path\n", 3, "/usr/local/var/log/httpd/ipfs");
+
+
     $this->openedPath = $path;
     if ($options & STREAM_USE_PATH) {
         $opened_path = $path;
     }
+
+    error_log(time() . " " . "path $path\n", 3, "/usr/local/var/log/httpd/ipfs");
+    error_log(time() . " " . "Opened path $opened_path\n", 3, "/usr/local/var/log/httpd/ipfs");
 
     return $this->handleBooleanCall(function () use ($path) {
         switch ($this->mode) {
@@ -536,7 +548,10 @@ class FissionIpfsStream implements StreamWrapperInterface {
    */
   public function url_stat($path, $flags)
   {
-    return [];
+ 
+    $stat = $this->getStatTemplate();
+    $stat['mode'] = 0100000 | 0666;
+    return $stat;
   }
 
     /**
