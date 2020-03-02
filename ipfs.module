@@ -15,24 +15,34 @@ function ipfs_file_presave(EntityInterface $entity) {
   /** @var \Drupal\file\FileInterface $entity */
   $uri = $entity->getFileUri();
 
+  $original_uri = $uri;
+
   // Update the URI of the file to point to the IPFS hash instead of the local
   // path.
   if ($entity->isNew() && \Drupal::service('file_system')->uriScheme($uri) === 'ipfs') {
-    $target = '/' . file_uri_target($uri);
-    $directory = dirname($target);
-    $file = basename($target);
 
-    // Get the hash of the parent directory and use it to construct an URI like:
-    // 'ipfs://<dir_hash>/<filename.ext>'.
-    $ipfs_host = \Drupal::config('ipfs.settings')->get('ipfs_host');
-    $uri = $ipfs_host . '/api/v0/files/stat?arg=' . $directory;
+    if ('ipfs' == \Drupal::config('ipfs.settings')->get('ipfs_gateway_type')) {
 
-    $response = \Drupal::httpClient()->request('GET', $uri);
-    $body = json_decode($response->getBody()->getContents(), true);
+      $target = '/' . file_uri_target($uri);
+      $directory = dirname($target);
+      $file = basename($target);
 
-    $uri = 'ipfs://' . $body['Hash'] . '/' . $file;
+      // Get the hash of the parent directory and use it to construct an URI like:
+      // 'ipfs://<dir_hash>/<filename.ext>'.
+      $ipfs_host = \Drupal::config('ipfs.settings')->get('ipfs_host');
+      $uri = $ipfs_host . '/api/v0/files/stat?arg=' . $directory;
 
-    $entity->setFileUri($uri);
+      $response = \Drupal::httpClient()->request('GET', $uri);
+      $body = json_decode($response->getBody()->getContents(), true);
+      $uri = 'ipfs://' . $body['Hash'] . '/' . $file;
+      $entity->setFileUri($uri);
+    } else if ('fission' == \Drupal::config('ipfs.settings')->get('ipfs_gateway_type')) {
+      $filestream = \Drupal::service('stream_wrapper.ipfs');
+      global $ipfs_hash;
+      $uri = 'ipfs://' . $ipfs_hash;
+      $entity->setFileUri($uri);
+      //$entity->setFilename($uri);
+    }
   }
 }
 

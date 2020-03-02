@@ -304,13 +304,18 @@ class FissionIpfsStream implements StreamWrapperInterface {
     $this->setHttpClientConfigOption('body', $this->stream->getContents());
     $response = $this->request('POST');
 
+    error_log(time() . ' POSTING TO FISSION' . "\n", 3, "/usr/local/var/log/httpd/ipfs");
+
     // If the upload was successful, move the file to our local opened path.
     if ($response->getStatusCode() == 200) {
       $hash = (string)$response->getBody();
       $body = $this->decodeResponse($response);
 
+      global $ipfs_hash;
+      $ipfs_hash = $hash;
+
       // Here I need to figure out how to store the hash as the filename.
-      error_log('RESPONSE: HASH:' . $hash . "\n", 3, "/usr/local/var/log/httpd/ipfs");
+      error_log(time() . ' RESPONSE: HASH:' . $hash . "\n", 3, "/usr/local/var/log/httpd/ipfs");
       return true;
     }
 
@@ -359,16 +364,10 @@ class FissionIpfsStream implements StreamWrapperInterface {
         return $this->triggerError($errors, $options);
     }
 
-    error_log(time() . " " . "Opened path $opened_path\n", 3, "/usr/local/var/log/httpd/ipfs");
-
-
     $this->openedPath = $path;
     if ($options & STREAM_USE_PATH) {
         $opened_path = $path;
     }
-
-    error_log(time() . " " . "path $path\n", 3, "/usr/local/var/log/httpd/ipfs");
-    error_log(time() . " " . "Opened path $opened_path\n", 3, "/usr/local/var/log/httpd/ipfs");
 
     return $this->handleBooleanCall(function () use ($path) {
         switch ($this->mode) {
@@ -548,10 +547,8 @@ class FissionIpfsStream implements StreamWrapperInterface {
    */
   public function url_stat($path, $flags)
   {
- 
-    $stat = $this->getStatTemplate();
-    $stat['mode'] = 0100000 | 0666;
-    return $stat;
+    // Returning false because we need to tell Drupal the file doesn't existing.
+    return FALSE;
   }
 
     /**
