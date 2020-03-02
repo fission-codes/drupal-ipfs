@@ -304,18 +304,13 @@ class FissionIpfsStream implements StreamWrapperInterface {
     $this->setHttpClientConfigOption('body', $this->stream->getContents());
     $response = $this->request('POST');
 
-    error_log(time() . ' POSTING TO FISSION' . "\n", 3, "/usr/local/var/log/httpd/ipfs");
-
     // If the upload was successful, move the file to our local opened path.
     if ($response->getStatusCode() == 200) {
       $hash = (string)$response->getBody();
       $body = $this->decodeResponse($response);
 
-      global $ipfs_hash;
-      $ipfs_hash = $hash;
-
-      // Here I need to figure out how to store the hash as the filename.
-      error_log(time() . ' RESPONSE: HASH:' . $hash . "\n", 3, "/usr/local/var/log/httpd/ipfs");
+      global $ipfs_hashes;
+      $ipfs_hashes[$this->getIpfsTarget($this->openedPath)] = $hash;
       return true;
     }
 
@@ -623,10 +618,15 @@ class FissionIpfsStream implements StreamWrapperInterface {
             $uri = $this->uri;
         }
 
-        list(, $target) = explode('://', $uri, 2);
+        // list(, $target) = explode('://', $uri, 2);
 
-        // Remove erroneous leading or trailing, forward-slashes and backslashes.
-        return trim($target, '\/');
+        // // Remove erroneous leading or trailing, forward-slashes and backslashes.
+        // return trim($target, '\/');
+
+        list(, $path) = explode('://', $uri, 2);
+        list(, $target) = explode('/', $path, 2);
+        return $target;
+
     }
 
     /**

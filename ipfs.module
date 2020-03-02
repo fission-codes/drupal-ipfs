@@ -37,11 +37,16 @@ function ipfs_file_presave(EntityInterface $entity) {
       $uri = 'ipfs://' . $body['Hash'] . '/' . $file;
       $entity->setFileUri($uri);
     } else if ('fission' == \Drupal::config('ipfs.settings')->get('ipfs_gateway_type')) {
-      $filestream = \Drupal::service('stream_wrapper.ipfs');
-      global $ipfs_hash;
-      $uri = 'ipfs://' . $ipfs_hash;
-      $entity->setFileUri($uri);
-      //$entity->setFilename($uri);
+
+      $target = '/' . file_uri_target($uri);
+      $directory = dirname($target);
+      $file = basename($target);
+      global $ipfs_hashes;
+
+      if (isset($ipfs_hashes[$file])) {
+        $uri = 'ipfs://' . $ipfs_hashes[$file];
+        $entity->setFileUri($uri);
+      }
     }
   }
 }
