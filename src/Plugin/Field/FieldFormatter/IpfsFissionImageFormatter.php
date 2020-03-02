@@ -134,7 +134,7 @@ class IpfsFissionImageFormatter extends ImageFormatter {
       $cache_tags = Cache::mergeTags($base_cache_tags, $file->getCacheTags());
       $fileUri = $file->getFileUri();
 
-      if ('ipfs' == \Drupal::service('stream_wrapper_manager')->getScheme($fileUri)) {
+      if ('ipfs' == \Drupal::service('stream_wrapper_manager')->getScheme($fileUri) && empty($image_style_setting)) {
         $uri = $this->configFactory->get('ipfs.settings')->get('fission_gateway') . '/ipfs/';
         $uri .= str_replace('ipfs://', '', $fileUri);
         $file->setFileUri($uri);
