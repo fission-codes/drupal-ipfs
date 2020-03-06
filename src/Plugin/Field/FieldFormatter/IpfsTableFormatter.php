@@ -9,14 +9,14 @@ use Drupal\file\Plugin\Field\FieldFormatter\DescriptionAwareFileFormatterBase;
  * Plugin implementation of the 'file_table' formatter.
  *
  * @FieldFormatter(
- *   id = "ipfs_fission_file_table",
- *   label = @Translation("IPFS Fission table of files"),
+ *   id = "ipfs_file_table",
+ *   label = @Translation("IPFS table of files"),
  *   field_types = {
  *     "file"
  *   }
  * )
  */
-class IpfsFissionTableFormatter extends DescriptionAwareFileFormatterBase {
+class IpfsTableFormatter extends DescriptionAwareFileFormatterBase {
 
   /**
    * {@inheritdoc}
@@ -27,12 +27,21 @@ class IpfsFissionTableFormatter extends DescriptionAwareFileFormatterBase {
     if ($files = $this->getEntitiesToView($items, $langcode)) {
       $header = [t('Attachment'), t('Size')];
       $rows = [];
-      $fission_gateway_url = \Drupal::config('ipfs.settings')->get('fission_gateway') . '/ipfs/';
+      $gateway = NULL;
+
+      $settings = \Drupal::config('ipfs.settings');
+      if ('ipfs' == $settings->get('ipfs_gateway_type')) {
+        $gateway = $settings->get('ipfs_gateway');
+      } else if ('fission' == $settings->get('ipfs_gateway_type')) {
+        $gateway = $settings->get('fission_gateway');
+      }
+      $gateway .= '/ipfs/';
+
       foreach ($files as $delta => $file) {
         $item = $file->_referringItem;
         $fileUri = $file->getFileUri();
         $fileUri = str_replace('ipfs://', '', $fileUri);
-        $file->setFileUri($fission_gateway_url . $fileUri);
+        $file->setFileUri($gateway . $fileUri);
         $rows[] = [
           [
             'data' => [

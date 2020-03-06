@@ -10,7 +10,7 @@ CONTENTS OF THIS FILE
 INTRODUCTION
 ------------
 
- Provides integration with IPFS via a stream wrapper.
+ Provides integration with IPFS via stream wrappers.
 
  The recommended usage is to configure file or image fields to use IPFS as the
  upload destination. [Image styles](https://www.drupal.org/docs/user_guide/en/structure-image-styles.html)
@@ -28,16 +28,20 @@ CONFIGURATION
 -------------
 
  * The IPFS gateway can be configured at `/admin/config/media/ipfs`.
+ * There are two stream wrappers to choose from, a raw IPFS wrapper and a Fission
+version. The Fission API endpoint requires a username and password for POSTing new
+files. See https://guide.fission.codes/ for information on how to install Fission and
+set up and account
+ * When adding File or Image fields to Entities, select IPFS as the storage mechanism.
+ * If you would like to display images or link to files from the IPFS, go to "Manage Display"
+ on the entity bundle and select an IPFS field formatter.
 
 TROUBLESHOOTING
 ---------------
 
- * The IPFS module doesn't provide any visible functions to the user on its own,
-   it simply exposes a new stream wrapper to Drupal.
 
-MAINTAINERS
+CONTRIBUTORS
 -----------
 
- Current maintainers:
-
  * Andrei Mateescu (https://www.drupal.org/u/amateescu)
+ * Floyd Mann (https://www.drupal.org/u/floydm)

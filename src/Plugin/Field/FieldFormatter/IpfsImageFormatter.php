@@ -20,13 +20,13 @@ use Drupal\image\Entity\ImageStyle;
  *
  * @FieldFormatter(
  *   id = "ipfs_fission_image_formatter",
- *   label = @Translation("IPFS Fission image formatter"),
+ *   label = @Translation("IPFS image formatter"),
  *   field_types = {
  *     "image"
  *   }
  * )
  */
-class IpfsFissionImageFormatter extends ImageFormatter {
+class IpfsImageFormatter extends ImageFormatter {
 
   /**
    * The config factory.
@@ -135,9 +135,19 @@ class IpfsFissionImageFormatter extends ImageFormatter {
       $fileUri = $file->getFileUri();
 
       if ('ipfs' == \Drupal::service('stream_wrapper_manager')->getScheme($fileUri) && empty($image_style_setting)) {
-        $uri = $this->configFactory->get('ipfs.settings')->get('fission_gateway') . '/ipfs/';
-        $uri .= str_replace('ipfs://', '', $fileUri);
-        $file->setFileUri($uri);
+        $gateway = NULL;
+        $settings = $this->configFactory->get('ipfs.settings');
+        if ('ipfs' == $settings->get('ipfs_gateway_type')) {
+          $gateway = $settings->get('ipfs_gateway');
+        } else if ('fission' == $settings->get('ipfs_gateway_type')) {
+          $gateway = $settings->get('fission_gateway');
+        }
+
+        if ($gateway) {
+          $uri = $gateway . '/ipfs/';
+          $uri .= str_replace('ipfs://', '', $fileUri);
+          $file->setFileUri($uri);
+        }
       }
 
 

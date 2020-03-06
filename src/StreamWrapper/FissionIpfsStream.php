@@ -297,7 +297,7 @@ class FissionIpfsStream implements StreamWrapperInterface {
 
     $settings = \Drupal::config('ipfs.settings');
 
-    $this->setUri($settings->get('fission_gateway') . '/ipfs');
+    $this->setUri($settings->get('fission_host') . '/ipfs');
     $this->setHttpClientConfigOption('headers', ['Content-Type' => 'application/octet-stream']);
     $this->setHttpClientConfigOption('auth', [$settings->get('fission_username'), $settings->get('fission_password')]);
     // $this->setHttpClientConfigOption('debug', fopen('/usr/local/var/log/httpd/guzzle','w+'));

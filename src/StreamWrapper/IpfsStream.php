@@ -84,11 +84,6 @@ class IpfsStream implements StreamWrapperInterface {
     return $scheme . '://' . $dirname;
   }
 
-
-  /* Pass all of these through */
-
-// NOT STANDARD INTERFACE FOR THE FIRST THREE???
-
   public static function register($ipfs_host = 'http://127.0.0.1:5001', array $http_client_config = [])
   {
       if (in_array(static::PROTOCOL, stream_get_wrappers())) {
