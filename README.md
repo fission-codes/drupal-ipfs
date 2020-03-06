@@ -5,7 +5,7 @@ CONTENTS OF THIS FILE
  * Installation
  * Configuration
  * Troubleshooting
- * Maintainers
+ * Contributors
 
 INTRODUCTION
 ------------
@@ -29,10 +29,11 @@ CONFIGURATION
 
  * The IPFS gateway can be configured at `/admin/config/media/ipfs`.
  * There are two stream wrappers to choose from, a raw IPFS wrapper and a Fission
-version. The Fission API endpoint requires a username and password for POSTing new
+version.
+ * The Fission API endpoint requires a username and password for POSTing new
 files. See https://guide.fission.codes/ for information on how to install Fission and
-set up and account
- * When adding File or Image fields to Entities, select IPFS as the storage mechanism.
+register a Fission account.
+ * When adding File or Image fields to an Entity, select IPFS as the Upload Destination.
  * If you would like to display images or link to files from the IPFS, go to "Manage Display"
  on the entity bundle and select an IPFS field formatter.
 
