@@ -4,6 +4,7 @@ CONTENTS OF THIS FILE
  * Introduction
  * Installation
  * Configuration
+ * Features
  * Troubleshooting
  * Contributors
 
@@ -36,6 +37,15 @@ register a Fission account.
  * When adding File or Image fields to an Entity, select IPFS as the Upload Destination.
  * If you would like to display images or link to files from the IPFS, go to "Manage Display"
  on the entity bundle and select an IPFS field formatter.
+ 
+ FEATURES
+ --------
+ 
+There are various challenges with having the entire `public://` file system in Drupal be handled by a third-party system. This also affects the Amazon S3 module. We will collect some research and post issues describing this.
+
+IPFS is a good fit for making files available offline. So video or other large files would be a good fit for this.
+
+As well, IPFS can provide sync capabilities, so a desktop integration where users can manage media assets locally, that are then reflected directly on the live Drupal site.
 
 TROUBLESHOOTING
 ---------------
@@ -45,4 +55,4 @@ CONTRIBUTORS
 -----------
 
  * Andrei Mateescu (https://www.drupal.org/u/amateescu)
- * Floyd Mann (https://www.drupal.org/u/floydm)
+ * Floyd Mann (https://www.drupal.org/u/floydm), working at [Affinity Bridge](https://affinitybridge.com), sponsored by [Fission](https://fission.codes)
